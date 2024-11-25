@@ -338,6 +338,15 @@
             background-color: #047857;
         }
 
+        /* Renaming to "Print Ticket" and adjusting styles */
+        .btn-export-rubric {
+            background-color: #059669; /* Green-600 */
+        }
+
+        .btn-export-rubric:hover {
+            background-color: #047857;
+        }
+
         .rubric-total {
             background-color: #f3f4f6;
             padding: 15px;
@@ -345,6 +354,7 @@
             margin-top: 20px;
             text-align: center;
             font-weight: bold;
+            font-size: 16px;
         }
 
         .rubric-comments {
@@ -352,6 +362,34 @@
             font-size: 14px;
             color: #4b5563;
             font-style: italic;
+        }
+
+        /* Print Ticket Styling */
+        .print-ticket {
+            width: 300px;
+            padding: 20px;
+            border: 2px dashed #ff4d00;
+            border-radius: 8px;
+            background-color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            color: #000000;
+        }
+
+        .print-ticket h2 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #ff4d00;
+            font-size: 20px;
+        }
+
+        .print-ticket p {
+            margin-bottom: 8px;
+        }
+
+        .print-ticket .section-title {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -702,8 +740,8 @@
                     </div>
 
                     <!-- Total Score Display -->
-                    <div class="rubric-total bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-lg font-bold mb-2">
+                    <div class="rubric-total">
+                        <h3>
                             Total Score: 
                             <span id="totalScore">0</span>/23 
                             (<span id="percentageScore">0%</span>)
@@ -730,7 +768,7 @@
                         id="exportRubricButton" 
                         class="btn-export-rubric"
                     >
-                        Export Rubric
+                        Print Ticket
                     </button>
                 </div>
             </div>
@@ -1324,53 +1362,53 @@
         const commentTemplates = {
             concept: {
                 excellent: [
-                    "Strong and well-defined project concept with clear purpose.",
-                    "Innovative approach that effectively addresses user needs.",
-                    "Demonstrates exceptional understanding of project goals."
+                    "The project concept is exceptionally strong, demonstrating clear purpose and innovation.",
+                    "Purpose clarity is outstanding, effectively addressing the target audience's needs.",
+                    "The project showcases a high level of innovation and a well-defined scope."
                 ],
                 good: [
-                    "Solid project concept with potential for further refinement.",
-                    "Clear objectives, but could benefit from more innovative thinking.",
-                    "Addresses core user needs with some room for improvement."
+                    "The project concept is solid with clear objectives, though there's room for increased innovation.",
+                    "Purpose is clear, and the audience connection is good, but the scope could be better defined.",
+                    "The concept addresses core needs adequately, with some innovative elements."
                 ],
                 improvement: [
-                    "Project concept lacks clarity and requires significant development.",
-                    "Needs a more focused and targeted approach to project goals.",
-                    "Unclear value proposition that needs substantial reworking."
+                    "The project concept lacks clarity and requires significant development to meet objectives.",
+                    "Purpose clarity is insufficient, and the audience connection needs enhancement.",
+                    "The project scope is vague, and innovation levels are low, needing substantial improvement."
                 ]
             },
             design: {
                 excellent: [
-                    "Exceptional user experience with intuitive design.",
-                    "Visually appealing and highly functional interface.",
-                    "Seamless interaction that enhances overall project value."
+                    "The design experience is exceptional, with an intuitive and visually appealing interface.",
+                    "User interaction is seamless, enhancing the overall functionality of the project.",
+                    "The design demonstrates a high value in user experience and usability."
                 ],
                 good: [
-                    "Solid design with good user experience.",
-                    "Clean interface with some areas for potential improvement.",
-                    "Functional design that meets basic user expectations."
+                    "The design experience is solid, providing a good user interface with some areas for improvement.",
+                    "User interaction is functional, though certain elements could be more intuitive.",
+                    "The design offers adequate usability, meeting basic user expectations."
                 ],
                 improvement: [
-                    "Design requires significant overhaul to improve usability.",
-                    "Confusing user interface that hinders project effectiveness.",
-                    "Lacks coherent design strategy and user-centered approach."
+                    "The design experience needs significant improvement to enhance usability and user interaction.",
+                    "User interface is confusing and hinders the overall effectiveness of the project.",
+                    "The design lacks a coherent strategy, negatively impacting user experience."
                 ]
             },
             implementation: {
                 excellent: [
-                    "Robust implementation with high-quality, efficient code.",
-                    "Excellent error handling and comprehensive documentation.",
-                    "Demonstrates advanced technical proficiency."
+                    "Implementation is robust with high-quality, efficient code and excellent error handling.",
+                    "Comprehensive documentation accompanies the project, showcasing advanced technical proficiency.",
+                    "The project demonstrates superior implementation standards and technical execution."
                 ],
                 good: [
-                    "Solid implementation with some areas for optimization.",
-                    "Functional code with moderate complexity.",
-                    "Adequate documentation and error management."
+                    "Implementation is solid with functional code, though some areas could be optimized.",
+                    "Error handling and documentation are adequate, supporting the project's functionality.",
+                    "The project is implemented effectively, meeting expected technical standards."
                 ],
                 improvement: [
-                    "Implementation shows significant technical challenges.",
-                    "Code requires substantial refactoring and optimization.",
-                    "Documentation is incomplete and error handling is insufficient."
+                    "Implementation reveals significant technical challenges and requires substantial refactoring.",
+                    "Code quality is low, with insufficient error handling and incomplete documentation.",
+                    "The project implementation is weak, hindering overall performance and reliability."
                 ]
             }
         };
@@ -1440,14 +1478,15 @@
             overallGradeElement.textContent = `Overall Grade: ${grade}`;
         }
 
-        // Generate Comments
+        // Generate Comments based on Scores
         function generateComments() {
             const sections = ['concept', 'design', 'implementation'];
+            let aggregatedComments = [];
 
             sections.forEach(section => {
                 const elements = getSectionElements(section);
-                const subcriteria = Array.from(elements.subcriteriaSelects).map(select => parseFloat(select.value));
-                const average = subcriteria.reduce((a, b) => a + b, 0) / subcriteria.length;
+                const scores = Array.from(elements.subcriteriaSelects).map(select => parseFloat(select.value));
+                const average = scores.reduce((a, b) => a + b, 0) / scores.length;
 
                 let commentLevel = '';
                 if (average >= 2.5) {
@@ -1459,25 +1498,72 @@
                 }
 
                 const comments = commentTemplates[section][commentLevel];
-                const randomComment = comments[Math.floor(Math.random() * comments.length)];
-
-                elements.generatedComments.textContent = randomComment;
+                const selectedComment = comments.join(' ');
+                aggregatedComments.push(`${capitalizeFirstLetter(section)}: ${selectedComment}`);
+                elements.generatedComments.textContent = comments.join(' ');
             });
+
+            // Optionally, display aggregated comments somewhere
+            console.log("Aggregated Comments:", aggregatedComments.join('\n'));
         }
 
-        // Export Rubric as Image
+        // Function to capitalize first letter
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Export Rubric as "Print Ticket"
         function exportRubric() {
             const rubric = document.querySelector('.rubric-section');
-            html2canvas(rubric, { scale: 2 }).then(canvas => {
+            const projectName = document.getElementById('projectName').value || 'Rubric';
+            
+            // Clone the rubric section to format as ticket
+            const ticket = rubric.cloneNode(true);
+            ticket.classList.add('print-ticket');
+
+            // Modify the cloned rubric to match ticket styling
+            ticket.innerHTML = `
+                <h2>Rubric Ticket</h2>
+                <p><strong>Project Name:</strong> ${projectName}</p>
+                <p><strong>Total Score:</strong> ${document.getElementById('totalScore').textContent}/23 (${document.getElementById('percentageScore').textContent})</p>
+                <p><strong>Overall Grade:</strong> ${document.getElementById('overallGrade').textContent.replace('Overall Grade: ', '')}</p>
+                <div class="section-title">Concept</div>
+                <p>${document.querySelector('.concept-generated-comments').textContent}</p>
+                <div class="section-title">Design Experience</div>
+                <p>${document.querySelector('.design-generated-comments').textContent}</p>
+                <div class="section-title">Implementation</div>
+                <p>${document.querySelector('.implementation-generated-comments').textContent}</p>
+            `;
+
+            // Style adjustments for better printability
+            ticket.style.width = '300px';
+            ticket.style.padding = '20px';
+            ticket.style.border = '2px dashed #ff4d00';
+            ticket.style.borderRadius = '8px';
+            ticket.style.backgroundColor = '#ffffff';
+            ticket.style.fontFamily = "'Courier New', Courier, monospace";
+            ticket.style.color = '#000000';
+
+            // Create a temporary container to hold the ticket
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.appendChild(ticket);
+            document.body.appendChild(tempContainer);
+
+            // Use html2canvas to capture the ticket
+            html2canvas(ticket, { scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                const projectName = document.getElementById('projectName').value || 'rubric';
                 const sanitizedProjectName = projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                link.download = `${sanitizedProjectName}_rubric.png`;
+                link.download = `${sanitizedProjectName}_ticket.png`;
                 link.href = canvas.toDataURL();
                 link.click();
+
+                // Clean up
+                document.body.removeChild(tempContainer);
             }).catch(err => {
-                console.error('Error exporting rubric:', err);
-                alert('An error occurred while exporting the rubric.');
+                console.error('Error exporting ticket:', err);
+                alert('An error occurred while printing the ticket.');
             });
         }
 
@@ -1691,7 +1777,28 @@
             technologyChart.update();
         }
 
-        // Initialize Charts
+        // Initialize Gallery and Charts
+        function initializeGallery() {
+            createProjectCards(filteredProjects);
+            updateCharts(filteredProjects);
+        }
+
+        // Function to perform basic bias analysis (qualitative)
+        function analyzeBiases() {
+            // Example: Overrepresentation of AI in certain domains
+            const domainFocus = {};
+            Object.values(projectsData).forEach(details => {
+                if (!domainFocus[details.Domain]) {
+                    domainFocus[details.Domain] = {};
+                }
+                domainFocus[details.Domain][details.Focus] = (domainFocus[details.Domain][details.Focus] || 0) + 1;
+            });
+
+            console.log("Bias Analysis:", domainFocus);
+            // Further analysis can be implemented as needed
+        }
+
+        // Initialize
         window.addEventListener('DOMContentLoaded', () => {
             initializeCharts();
             initializeGallery();

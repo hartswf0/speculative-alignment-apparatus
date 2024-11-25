@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speculative Projects Gallery with Rubric Evaluator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2canvas CDN for Export Functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4e3c3;
+            color: #000000;
+            line-height: 1.5;
+            font-size: 16px;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        nav {
+            width: 300px;
+            background-color: #e3d5b6;
+            padding: 20px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            overflow-y: auto;
+        }
+
+        nav h2 {
+            color: #ff4d00;
+            font-size: 20px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ff4d00;
+            padding-bottom: 10px;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav ul li a {
+            color: #000000;
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+            border-left: 4px solid #ff4d00;
+            background-color: #e3d5b6;
+            transition: background-color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            background-color: #d4c4a8;
+        }
+
+        /* Main Content */
+        main {
+            margin-left: 300px;
+            padding: 40px;
+            flex-grow: 1;
+            background-color: #ffffff;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Filter Section */
+        .filter-section {
+            margin-bottom: 30px;
+        }
+
+        .filter-section h3 {
+            margin-bottom: 10px;
+            color: #ff4d00;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .filter-group select {
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        /* Project Cards */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background-color: #ffffff;
+            border: 1px solid #e3d5b6;
+            border-radius: 5px;
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .project-card h3 {
+            color: #ff4d00;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #d4c4a8;
+            padding-bottom: 5px;
+        }
+
+        .tags {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tag {
+            background-color: #ff4d00;
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        /* Statistics Section */
+        .stats-section {
+            margin-top: 50px;
+        }
+
+        .stats-section h2 {
+            color: #ff4d00;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #ff4d00;
+        }
+
+        /* Modal Sections */
+        .modal-section {
+            margin-bottom: 20px;
+        }
+
+        .modal-section h3 {
+            color: #ff4d00;
+            margin-bottom: 5px;
+        }
+
+        .modal-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .modal-tag {
+            background-color: #ff4d00;
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            nav {
+                width: 250px;
+            }
+
+            main {
+                margin-left: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            nav {
+                width: 100%;
+                position: static;
+            }
+
+            main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+        }
+
+        /* Rubric Evaluator Specific Styles */
+        /* Ensuring the rubric evaluator fits within the modal */
+        .rubric-section {
+            margin-top: 30px;
+        }
+
+        .rubric-section h2 {
+            color: #ff4d00;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #d4c4a8;
+            padding-bottom: 5px;
+        }
+
+        .rubric-section label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .rubric-section input,
+        .rubric-section select,
+        .rubric-section textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .rubric-section textarea {
+            resize: vertical;
+        }
+
+        .rubric-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .rubric-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-generate-comments {
+            background-color: #6b21a8; /* Purple-700 */
+        }
+
+        .btn-generate-comments:hover {
+            background-color: #5a189a;
+        }
+
+        .btn-calculate-score {
+            background-color: #2563eb; /* Blue-600 */
+        }
+
+        .btn-calculate-score:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-export-rubric {
+            background-color: #059669; /* Green-600 */
+        }
+
+        .btn-export-rubric:hover {
+            background-color: #047857;
+        }
+
+        .rubric-total {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .rubric-comments {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4b5563;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h2>Speculative Projects</h2>
+        <ul id="project-menu">
+            <!-- Project menu items will be dynamically populated -->
+        </ul>
+    </nav>
+
+    <main>
+        <h1 class="text-3xl font-bold mb-6 text-center">Speculative Projects Gallery</h1>
+
+        <div class="filter-section">
+            <h3>Filters</h3>
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="domain-filter">Domain</label>
+                    <select id="domain-filter">
+                        <option value="All">All</option>
+                        <option value="Health">Health</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Education">Education</option>
+                        <option value="Art">Art</option>
+                        <option value="Social">Social</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Mental Health">Mental Health</option>
+                        <option value="Legal">Legal</option>
+                        <option value="Environmental">Environmental</option>
+                        <option value="Lifestyle">Lifestyle</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="focus-filter">Focus</label>
+                    <select id="focus-filter">
+                        <option value="All">All</option>
+                        <option value="AI">AI</option>
+                        <option value="AR">AR</option>
+                        <option value="VR">VR</option>
+                        <option value="Interactive">Interactive</option>
+                        <option value="Music">Music</option>
+                        <option value="Edutainment">Edutainment</option>
+                        <option value="Gaming">Gaming</option>
+                        <option value="Social Media">Social Media</option>
+                        <option value="Nutrition">Nutrition</option>
+                        <option value="Chatbots">Chatbots</option>
+                        <option value="3D Modeling">3D Modeling</option>
+                        <option value="Blockchain">Blockchain</option>
+                        <option value="Interactive Media">Interactive Media</option>
+                        <option value="Music-Based">Music-Based</option>
+                        <option value="Image Transformation">Image Transformation</option>
+                        <option value="Data Integration">Data Integration</option>
+                        <option value="Generative AI">Generative AI</option>
+                        <option value="Interactive Storytelling">Interactive Storytelling</option>
+                        <option value="Augmented Reality">Augmented Reality</option>
+                        <option value="Virtual Reality">Virtual Reality</option>
+                        <option value="Web Development">Web Development</option>
+                        <option value="Speculative Design">Speculative Design</option>
+                        <option value="Interactive Design">Interactive Design</option>
+                        <option value="Brain Scanning">Brain Scanning</option>
+                        <option value="Food Technology">Food Technology</option>
+                        <option value="Gaming">Gaming</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="feasibility-filter">Feasibility</label>
+                    <select id="feasibility-filter">
+                        <option value="All">All</option>
+                        <option value="Probable">Probable</option>
+                        <option value="Plausible">Plausible</option>
+                        <option value="Possible">Possible</option>
+                        <option value="Preposterous">Preposterous</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="technology-filter">Technology</label>
+                    <select id="technology-filter">
+                        <option value="All">All</option>
+                        <option value="AI">AI</option>
+                        <option value="AR">AR</option>
+                        <option value="VR">VR</option>
+                        <option value="Chatbots">Chatbots</option>
+                        <option value="3D Modeling">3D Modeling</option>
+                        <option value="Blockchain">Blockchain</option>
+                        <option value="Interactive Media">Interactive Media</option>
+                        <option value="Music-Based">Music-Based</option>
+                        <option value="Image Transformation">Image Transformation</option>
+                        <option value="Data Integration">Data Integration</option>
+                        <option value="Generative AI">Generative AI</option>
+                        <option value="Interactive Storytelling">Interactive Storytelling</option>
+                        <option value="Augmented Reality">Augmented Reality</option>
+                        <option value="Virtual Reality">Virtual Reality</option>
+                        <option value="Web Development">Web Development</option>
+                        <option value="Speculative Design">Speculative Design</option>
+                        <option value="Interactive Design">Interactive Design</option>
+                        <option value="Brain Scanning">Brain Scanning</option>
+                        <option value="Food Technology">Food Technology</option>
+                        <option value="Gaming">Gaming</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="projects-grid" class="projects-grid">
+            <!-- Projects will be dynamically inserted here -->
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <h2>Project Statistics</h2>
+            <div class="chart-container">
+                <canvas id="domainChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="focusChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="feasibilityChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="technologyChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Project Modal with Rubric Evaluator -->
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Project Title</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modal-details">
+                <!-- Project details will be populated here -->
+            </div>
+            <!-- Rubric Evaluator Section -->
+            <div class="rubric-section">
+                <h2>Project Rubric Evaluator</h2>
+                <div class="mb-4">
+                    <label for="projectName">Project Name</label>
+                    <input 
+                        type="text" 
+                        id="projectName" 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        placeholder="Enter project name"
+                        readonly
+                    >
+                </div>
+
+                <div id="rubricSections">
+                    <!-- Concept Section -->
+                    <div class="mb-6 concept-section">
+                        <h3 class="text-xl font-semibold mb-4">Concept</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">Concept Level</label>
+                                <select 
+                                    class="concept-score shadow border rounded w-full py-2 px-3 text-gray-700 scoring-dropdown"
+                                    data-section="concept"
+                                    data-max="10"
+                                >
+                                    <option value="10">High Concept (8-10 pts)</option>
+                                    <option value="9">High Concept (9 pts)</option>
+                                    <option value="8">High Concept (8 pts)</option>
+                                    <option value="7">Moderate Concept (7 pts)</option>
+                                    <option value="6">Moderate Concept (6 pts)</option>
+                                    <option value="5">Moderate Concept (5 pts)</option>
+                                    <option value="4">Moderate Concept (4 pts)</option>
+                                    <option value="3">Low Concept (3 pts)</option>
+                                    <option value="2">Low Concept (2 pts)</option>
+                                    <option value="1">Low Concept (1 pt)</option>
+                                    <option value="0">Low Concept (0 pts)</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-gray-700 font-bold mb-2">Detailed Criteria</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-sm">Purpose Clarity</label>
+                                        <select class="w-full border rounded concept-subcriteria">
+                                            <option value="3">Excellent</option>
+                                            <option value="2">Good</option>
+                                            <option value="1">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm">Audience Connection</label>
+                                        <select class="w-full border rounded concept-subcriteria">
+                                            <option value="3">Excellent</option>
+                                            <option value="2">Good</option>
+                                            <option value="1">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm">Innovation Level</label>
+                                        <select class="w-full border rounded concept-subcriteria">
+                                            <option value="3">Excellent</option>
+                                            <option value="2">Good</option>
+                                            <option value="1">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm">Project Scope</label>
+                                        <select class="w-full border rounded concept-subcriteria">
+                                            <option value="3">Excellent</option>
+                                            <option value="2">Good</option>
+                                            <option value="1">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <textarea 
+                                    class="concept-notes mt-2 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    rows="4"
+                                    placeholder="Specific notes about the concept"
+                                ></textarea>
+                                <div class="concept-generated-comments rubric-comments"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Design Experience Section -->
+                    <div class="mb-6 design-section">
+                        <h3 class="text-xl font-semibold mb-4">Design Experience</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">Design Experience Level</label>
+                                <select 
+                                    class="design-score shadow border rounded w-full py-2 px-3 text-gray-700 scoring-dropdown"
+                                    data-section="design"
+                                    data-max="10"
+                                >
+                                    <option value="10">High Design (8-10 pts)</option>
+                                    <option value="9">High Design (9 pts)</option>
+                                    <option value="8">High Design (8 pts)</option>
+                                    <option value="7">Moderate Design (7 pts)</option>
+                                    <option value="6">Moderate Design (6 pts)</option>
+                                    <option value="5">Moderate Design (5 pts)</option>
+                                    <option value="4">Moderate Design (4 pts)</option>
+                                    <option value="3">Low Design (3 pts)</option>
+                                    <option value="2">Low Design (2 pts)</option>
+                                    <option value="1">Low Design (1 pt)</option>
+                                    <option value="0">Low Design (0 pts)</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-gray-700 font-bold mb-2">Detailed Criteria</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-sm">User Interaction</label>
+                                        <select class="w-full border rounded design-subcriteria">
+                                            <option value="3">Excellent</option>
+                                            <option value="2">Good</option>
+                                            <option value="1">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm">Visual Design</label>
+                                        <select class="w-full border rounded design-subcriteria">
+                                            <option value="3">Excellent</option>
+                                            <option value="2">Good</option>
+                                            <option value="1">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm">Experience Value</label>
+                                        <select class="w-full border rounded design-subcriteria">
+                                            <option value="3">Excellent</option>
+                                            <option value="2">Good</option>
+                                            <option value="1">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm">Usability</label>
+                                        <select class="w-full border rounded design-subcriteria">
+                                            <option value="3">Excellent</option>
+                                            <option value="2">Good</option>
+                                            <option value="1">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <textarea 
+                                    class="design-notes mt-2 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    rows="4"
+                                    placeholder="Specific notes about design experience"
+                                ></textarea>
+                                <div class="design-generated-comments rubric-comments"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Implementation Section -->
+                    <div class="mb-6 implementation-section">
+                        <h3 class="text-xl font-semibold mb-4">Implementation</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">Implementation Level</label>
+                                <select 
+                                    class="implementation-score shadow border rounded w-full py-2 px-3 text-gray-700 scoring-dropdown"
+                                    data-section="implementation"
+                                    data-max="3"
+                                >
+                                    <option value="3">High Implementation (3 pts)</option>
+                                    <option value="2.5">High Implementation (2.5 pts)</option>
+                                    <option value="2">Moderate Implementation (2 pts)</option>
+                                    <option value="1.5">Moderate Implementation (1.5 pts)</option>
+                                    <option value="1">Low Implementation (1 pt)</option>
+                                    <option value="0.5">Low Implementation (0.5 pts)</option>
+                                    <option value="0">Low Implementation (0 pts)</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-gray-700 font-bold mb-2">Detailed Criteria</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-sm">Code Quality</label>
+                                        <select class="w-full border rounded implementation-subcriteria">
+                                            <option value="1">Excellent</option>
+                                            <option value="0.75">Good</option>
+                                            <option value="0.5">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm">Error Handling</label>
+                                        <select class="w-full border rounded implementation-subcriteria">
+                                            <option value="1">Excellent</option>
+                                            <option value="0.75">Good</option>
+                                            <option value="0.5">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm">Documentation</label>
+                                        <select class="w-full border rounded implementation-subcriteria">
+                                            <option value="1">Excellent</option>
+                                            <option value="0.75">Good</option>
+                                            <option value="0.5">Needs Improvement</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <textarea 
+                                    class="implementation-notes mt-2 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    rows="4"
+                                    placeholder="Specific notes about implementation"
+                                ></textarea>
+                                <div class="implementation-generated-comments rubric-comments"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Score Display -->
+                    <div class="rubric-total bg-gray-100 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold mb-2">
+                            Total Score: 
+                            <span id="totalScore">0</span>/23 
+                            (<span id="percentageScore">0%</span>)
+                        </h3>
+                        <div id="overallGrade" class="text-center font-semibold"></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="rubric-actions">
+                    <button 
+                        id="generateCommentsButton" 
+                        class="btn-generate-comments"
+                    >
+                        Generate Comments
+                    </button>
+                    <button 
+                        id="calculateScoreButton" 
+                        class="btn-calculate-score"
+                    >
+                        Calculate Score
+                    </button>
+                    <button 
+                        id="exportRubricButton" 
+                        class="btn-export-rubric"
+                    >
+                        Export Rubric
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const projectsData = {
+            "StrideSense": {
+                "Speculative_World": "A future where smart footwear empowers visually impaired individuals with enhanced navigation but introduces new safety risks.",
+                "Theme": "Balancing technological innovation with safety and reliability in assistive devices.",
+                "Logline": "Smart shoes offer independence to the visually impaired, but at the risk of technological vulnerabilities.",
+                "Topic": "Assistive technology advancement for the visually impaired.",
+                "Entities": ["StrideSense shoes", "visually impaired users", "sensors", "mobile app", "potential hackers"],
+                "What_If": "What if smart shoes could guide the visually impaired through any environment but could be hacked to cause harm?",
+                "Domain": "Health",
+                "Focus": "AI",
+                "Feasibility": "Plausible",
+                "Technology": ["AI", "Sensors", "Mobile App"]
+            },
+            "One Piece Wiki with Chatbot": {
+                "Speculative_World": "A world where AI brings fictional characters to life for interactive fan experiences.",
+                "Theme": "Immersion and authenticity in AI-driven character interaction.",
+                "Logline": "Fans engage with AI versions of One Piece characters, bridging fiction and reality.",
+                "Topic": "AI in entertainment and fandom interaction.",
+                "Entities": ["AI chatbots", "One Piece characters", "fans", "interactive interface"],
+                "What_If": "What if fans could have natural conversations with AI that perfectly emulate their favorite fictional characters?",
+                "Domain": "Entertainment",
+                "Focus": "Chatbots",
+                "Feasibility": "Probable",
+                "Technology": ["AI", "Chatbots", "Interactive Media"]
+            },
+            // ... [Other projects as provided]
+            "AI-Integrated Therapeutic Scenario Simulator": {
+                "Speculative_World": "A future where AI creates personalized therapeutic simulations to aid emotional healing.",
+                "Theme": "Using AI and immersive scenarios for mental health therapy.",
+                "Logline": "An AI tool assesses your needs to generate scenarios that help overcome traumas through interactive choices.",
+                "Topic": "AI in mental health and personalized therapy.",
+                "Entities": ["AI assessment tool", "users", "immersive scenarios", "biological data"],
+                "What_If": "What if AI could simulate personalized scenarios to help you confront and heal from emotional traumas?",
+                "Domain": "Mental Health",
+                "Focus": "AI",
+                "Feasibility": "Possible",
+                "Technology": ["AI", "Virtual Reality", "Interactive Design", "Brain Scanning"]
+            }
+        };
+
+        let filteredProjects = { ...projectsData };
+
+        // Initialize Charts
+        let domainChart, focusChart, feasibilityChart, technologyChart;
+
+        function initializeCharts() {
+            const ctxDomain = document.getElementById('domainChart').getContext('2d');
+            const ctxFocus = document.getElementById('focusChart').getContext('2d');
+            const ctxFeasibility = document.getElementById('feasibilityChart').getContext('2d');
+            const ctxTechnology = document.getElementById('technologyChart').getContext('2d');
+
+            domainChart = new Chart(ctxDomain, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of Projects',
+                        data: [],
+                        backgroundColor: '#ff4d00',
+                        borderColor: '#d4c4a8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projects by Domain'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision:0
+                            }
+                        }
+                    }
+                }
+            });
+
+            focusChart = new Chart(ctxFocus, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of Projects',
+                        data: [],
+                        backgroundColor: '#ff4d00',
+                        borderColor: '#d4c4a8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projects by Focus'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision:0
+                            }
+                        }
+                    }
+                }
+            });
+
+            feasibilityChart = new Chart(ctxFeasibility, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of Projects',
+                        data: [],
+                        backgroundColor: [
+                            '#ff4d00',
+                            '#e3d5b6',
+                            '#d4c4a8',
+                            '#a8a8a8'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projects by Feasibility'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            technologyChart = new Chart(ctxTechnology, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of Projects',
+                        data: [],
+                        backgroundColor: '#ff4d00',
+                        borderColor: '#d4c4a8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projects by Technology'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision:0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to create project cards and menu items
+        function createProjectCards(projects) {
+            const projectsGrid = document.getElementById('projects-grid');
+            const projectMenu = document.getElementById('project-menu');
+            projectsGrid.innerHTML = '';
+            projectMenu.innerHTML = '';
+
+            Object.entries(projects).forEach(([title, details]) => {
+                // Create project card
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'project-card';
+                cardDiv.innerHTML = `
+                    <h3>${title}</h3>
+                    <p><strong>World:</strong> ${details.Speculative_World}</p>
+                    <div class="tags">
+                        <span class="tag">${details.Domain}</span>
+                        <span class="tag">${details.Focus}</span>
+                        <span class="tag">${details.Feasibility}</span>
+                    </div>
+                `;
+                cardDiv.addEventListener('click', () => openModal(title, details));
+                projectsGrid.appendChild(cardDiv);
+
+                // Create menu item
+                const menuItem = document.createElement('li');
+                const menuLink = document.createElement('a');
+                menuLink.href = '#';
+                menuLink.textContent = title;
+                menuLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openModal(title, details);
+                });
+                menuItem.appendChild(menuLink);
+                projectMenu.appendChild(menuItem);
+            });
+        }
+
+        // Function to open modal with project details and rubric evaluator
+        function openModal(title, details) {
+            const modal = document.getElementById('project-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDetails = document.getElementById('modal-details');
+            const projectNameInput = document.getElementById('projectName');
+
+            modalTitle.textContent = title;
+            projectNameInput.value = title;
+            modalDetails.innerHTML = `
+                <div class="modal-section">
+                    <h3>Speculative World</h3>
+                    <p>${details.Speculative_World}</p>
+                </div>
+                <div class="modal-section">
+                    <h3>Theme</h3>
+                    <p>${details.Theme}</p>
+                </div>
+                <div class="modal-section">
+                    <h3>Logline</h3>
+                    <p>${details.Logline}</p>
+                </div>
+                <div class="modal-section">
+                    <h3>Topic</h3>
+                    <p>${details.Topic}</p>
+                </div>
+                <div class="modal-section">
+                    <h3>Entities</h3>
+                    <ul>${details.Entities.map(entity => `<li>${entity}</li>`).join('')}</ul>
+                </div>
+                <div class="modal-section">
+                    <h3>What If</h3>
+                    <p>${details['What_If']}</p>
+                </div>
+                <div class="modal-section">
+                    <h3>Tags</h3>
+                    <div class="modal-tags">
+                        <span class="modal-tag">${details.Domain}</span>
+                        <span class="modal-tag">${details.Focus}</span>
+                        <span class="modal-tag">${details.Feasibility}</span>
+                        ${details.Technology.map(tech => `<span class="modal-tag">${tech}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Reset Rubric Evaluator
+            resetRubricEvaluator();
+
+            modal.style.display = 'flex';
+        }
+
+        // Function to close modal
+        function closeModal() {
+            const modal = document.getElementById('project-modal');
+            modal.style.display = 'none';
+        }
+
+        // Function to apply filters
+        function applyFilters() {
+            const domainFilter = document.getElementById('domain-filter').value;
+            const focusFilter = document.getElementById('focus-filter').value;
+            const feasibilityFilter = document.getElementById('feasibility-filter').value;
+            const technologyFilter = document.getElementById('technology-filter').value;
+
+            filteredProjects = {};
+
+            Object.entries(projectsData).forEach(([title, details]) => {
+                const domainMatch = (domainFilter === 'All') || (details.Domain === domainFilter);
+                const focusMatch = (focusFilter === 'All') || (details.Focus === focusFilter);
+                const feasibilityMatch = (feasibilityFilter === 'All') || (details.Feasibility === feasibilityFilter);
+                const technologyMatch = (technologyFilter === 'All') || (details.Technology.includes(technologyFilter));
+
+                if (domainMatch && focusMatch && feasibilityMatch && technologyMatch) {
+                    filteredProjects[title] = details;
+                }
+            });
+
+            createProjectCards(filteredProjects);
+            updateCharts(filteredProjects);
+        }
+
+        // Function to setup filter listeners
+        function setupFilterListeners() {
+            document.getElementById('domain-filter').addEventListener('change', applyFilters);
+            document.getElementById('focus-filter').addEventListener('change', applyFilters);
+            document.getElementById('feasibility-filter').addEventListener('change', applyFilters);
+            document.getElementById('technology-filter').addEventListener('change', applyFilters);
+        }
+
+        // Function to populate initial project cards and charts
+        function initializeGallery() {
+            createProjectCards(filteredProjects);
+            updateCharts(filteredProjects);
+        }
+
+        // Function to update charts based on filtered projects
+        function updateCharts(projects) {
+            // Reset data
+            domainChart.data.labels = [];
+            domainChart.data.datasets[0].data = [];
+
+            focusChart.data.labels = [];
+            focusChart.data.datasets[0].data = [];
+
+            feasibilityChart.data.labels = [];
+            feasibilityChart.data.datasets[0].data = [];
+
+            technologyChart.data.labels = [];
+            technologyChart.data.datasets[0].data = [];
+
+            // Calculate counts
+            const domainCounts = {};
+            const focusCounts = {};
+            const feasibilityCounts = {};
+            const technologyCounts = {};
+
+            Object.values(projects).forEach(details => {
+                // Domain
+                domainCounts[details.Domain] = (domainCounts[details.Domain] || 0) + 1;
+                // Focus
+                focusCounts[details.Focus] = (focusCounts[details.Focus] || 0) + 1;
+                // Feasibility
+                feasibilityCounts[details.Feasibility] = (feasibilityCounts[details.Feasibility] || 0) + 1;
+                // Technology
+                details.Technology.forEach(tech => {
+                    technologyCounts[tech] = (technologyCounts[tech] || 0) + 1;
+                });
+            });
+
+            // Update Domain Chart
+            domainChart.data.labels = Object.keys(domainCounts);
+            domainChart.data.datasets[0].data = Object.values(domainCounts);
+            domainChart.update();
+
+            // Update Focus Chart
+            focusChart.data.labels = Object.keys(focusCounts);
+            focusChart.data.datasets[0].data = Object.values(focusCounts);
+            focusChart.update();
+
+            // Update Feasibility Chart
+            feasibilityChart.data.labels = Object.keys(feasibilityCounts);
+            feasibilityChart.data.datasets[0].data = Object.values(feasibilityCounts);
+            feasibilityChart.update();
+
+            // Update Technology Chart
+            // Limit to top 10 technologies for clarity
+            const sortedTechnologies = Object.entries(technologyCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            technologyChart.data.labels = sortedTechnologies.map(item => item[0]);
+            technologyChart.data.datasets[0].data = sortedTechnologies.map(item => item[1]);
+            technologyChart.update();
+        }
+
+        // Function to perform basic bias analysis (qualitative)
+        function analyzeBiases() {
+            // Example: Overrepresentation of AI in certain domains
+            const domainFocus = {};
+            Object.values(projectsData).forEach(details => {
+                if (!domainFocus[details.Domain]) {
+                    domainFocus[details.Domain] = {};
+                }
+                domainFocus[details.Domain][details.Focus] = (domainFocus[details.Domain][details.Focus] || 0) + 1;
+            });
+
+            console.log("Bias Analysis:", domainFocus);
+            // Further analysis can be implemented as needed
+        }
+
+        // Rubric Evaluator Functionality
+
+        // Comment Generation Templates
+        const commentTemplates = {
+            concept: {
+                excellent: [
+                    "Strong and well-defined project concept with clear purpose.",
+                    "Innovative approach that effectively addresses user needs.",
+                    "Demonstrates exceptional understanding of project goals."
+                ],
+                good: [
+                    "Solid project concept with potential for further refinement.",
+                    "Clear objectives, but could benefit from more innovative thinking.",
+                    "Addresses core user needs with some room for improvement."
+                ],
+                improvement: [
+                    "Project concept lacks clarity and requires significant development.",
+                    "Needs a more focused and targeted approach to project goals.",
+                    "Unclear value proposition that needs substantial reworking."
+                ]
+            },
+            design: {
+                excellent: [
+                    "Exceptional user experience with intuitive design.",
+                    "Visually appealing and highly functional interface.",
+                    "Seamless interaction that enhances overall project value."
+                ],
+                good: [
+                    "Solid design with good user experience.",
+                    "Clean interface with some areas for potential improvement.",
+                    "Functional design that meets basic user expectations."
+                ],
+                improvement: [
+                    "Design requires significant overhaul to improve usability.",
+                    "Confusing user interface that hinders project effectiveness.",
+                    "Lacks coherent design strategy and user-centered approach."
+                ]
+            },
+            implementation: {
+                excellent: [
+                    "Robust implementation with high-quality, efficient code.",
+                    "Excellent error handling and comprehensive documentation.",
+                    "Demonstrates advanced technical proficiency."
+                ],
+                good: [
+                    "Solid implementation with some areas for optimization.",
+                    "Functional code with moderate complexity.",
+                    "Adequate documentation and error management."
+                ],
+                improvement: [
+                    "Implementation shows significant technical challenges.",
+                    "Code requires substantial refactoring and optimization.",
+                    "Documentation is incomplete and error handling is insufficient."
+                ]
+            }
+        };
+
+        // Utility function to get section elements
+        function getSectionElements(section) {
+            return {
+                scoreSelect: document.querySelector(`.${section}-score`),
+                subcriteriaSelects: document.querySelectorAll(`.${section}-subcriteria`),
+                notes: document.querySelector(`.${section}-notes`),
+                generatedComments: document.querySelector(`.${section}-generated-comments`)
+            };
+        }
+
+        // Reset Rubric Evaluator
+        function resetRubricEvaluator() {
+            document.querySelectorAll('.scoring-dropdown').forEach(dropdown => {
+                dropdown.selectedIndex = dropdown.options.length - 1; // Reset to last option
+            });
+
+            document.querySelectorAll('textarea').forEach(textarea => {
+                textarea.value = '';
+            });
+
+            document.querySelectorAll('.rubric-comments').forEach(commentDiv => {
+                commentDiv.textContent = '';
+            });
+
+            document.getElementById('totalScore').textContent = '0';
+            document.getElementById('percentageScore').textContent = '0%';
+            document.getElementById('overallGrade').textContent = '';
+        }
+
+        // Calculate Total Score
+        function calculateTotalScore() {
+            let total = 0;
+            const sections = ['concept', 'design', 'implementation'];
+
+            sections.forEach(section => {
+                const elements = getSectionElements(section);
+                const sectionScore = parseFloat(elements.scoreSelect.value);
+                total += sectionScore;
+            });
+
+            // Update Total Score and Percentage
+            const totalScoreElement = document.getElementById('totalScore');
+            const percentageScoreElement = document.getElementById('percentageScore');
+            const overallGradeElement = document.getElementById('overallGrade');
+
+            totalScoreElement.textContent = total.toFixed(2);
+            const percentage = (total / 23) * 100;
+            percentageScoreElement.textContent = `${percentage.toFixed(2)}%`;
+
+            // Determine Overall Grade
+            let grade = '';
+            if (percentage >= 90) {
+                grade = 'A';
+            } else if (percentage >= 80) {
+                grade = 'B';
+            } else if (percentage >= 70) {
+                grade = 'C';
+            } else if (percentage >= 60) {
+                grade = 'D';
+            } else {
+                grade = 'F';
+            }
+            overallGradeElement.textContent = `Overall Grade: ${grade}`;
+        }
+
+        // Generate Comments
+        function generateComments() {
+            const sections = ['concept', 'design', 'implementation'];
+
+            sections.forEach(section => {
+                const elements = getSectionElements(section);
+                const subcriteria = Array.from(elements.subcriteriaSelects).map(select => parseFloat(select.value));
+                const average = subcriteria.reduce((a, b) => a + b, 0) / subcriteria.length;
+
+                let commentLevel = '';
+                if (average >= 2.5) {
+                    commentLevel = 'excellent';
+                } else if (average >= 1.5) {
+                    commentLevel = 'good';
+                } else {
+                    commentLevel = 'improvement';
+                }
+
+                const comments = commentTemplates[section][commentLevel];
+                const randomComment = comments[Math.floor(Math.random() * comments.length)];
+
+                elements.generatedComments.textContent = randomComment;
+            });
+        }
+
+        // Export Rubric as Image
+        function exportRubric() {
+            const rubric = document.querySelector('.rubric-section');
+            html2canvas(rubric, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                const projectName = document.getElementById('projectName').value || 'rubric';
+                const sanitizedProjectName = projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                link.download = `${sanitizedProjectName}_rubric.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            }).catch(err => {
+                console.error('Error exporting rubric:', err);
+                alert('An error occurred while exporting the rubric.');
+            });
+        }
+
+        // Event Listeners for Rubric Evaluator
+        function setupRubricEventListeners() {
+            document.getElementById('calculateScoreButton').addEventListener('click', calculateTotalScore);
+            document.getElementById('generateCommentsButton').addEventListener('click', generateComments);
+            document.getElementById('exportRubricButton').addEventListener('click', exportRubric);
+
+            // Optional: Automatically calculate score when any scoring dropdown changes
+            document.querySelectorAll('.scoring-dropdown').forEach(dropdown => {
+                dropdown.addEventListener('change', calculateTotalScore);
+            });
+        }
+
+        // Initialize Charts Function (Updated to avoid duplication)
+        function initializeCharts() {
+            const ctxDomain = document.getElementById('domainChart').getContext('2d');
+            const ctxFocus = document.getElementById('focusChart').getContext('2d');
+            const ctxFeasibility = document.getElementById('feasibilityChart').getContext('2d');
+            const ctxTechnology = document.getElementById('technologyChart').getContext('2d');
+
+            domainChart = new Chart(ctxDomain, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of Projects',
+                        data: [],
+                        backgroundColor: '#ff4d00',
+                        borderColor: '#d4c4a8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projects by Domain'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision:0
+                            }
+                        }
+                    }
+                }
+            });
+
+            focusChart = new Chart(ctxFocus, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of Projects',
+                        data: [],
+                        backgroundColor: '#ff4d00',
+                        borderColor: '#d4c4a8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projects by Focus'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision:0
+                            }
+                        }
+                    }
+                }
+            });
+
+            feasibilityChart = new Chart(ctxFeasibility, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of Projects',
+                        data: [],
+                        backgroundColor: [
+                            '#ff4d00',
+                            '#e3d5b6',
+                            '#d4c4a8',
+                            '#a8a8a8'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projects by Feasibility'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            technologyChart = new Chart(ctxTechnology, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of Projects',
+                        data: [],
+                        backgroundColor: '#ff4d00',
+                        borderColor: '#d4c4a8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projects by Technology'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision:0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to update charts based on filtered projects
+        function updateCharts(projects) {
+            // Reset data
+            domainChart.data.labels = [];
+            domainChart.data.datasets[0].data = [];
+
+            focusChart.data.labels = [];
+            focusChart.data.datasets[0].data = [];
+
+            feasibilityChart.data.labels = [];
+            feasibilityChart.data.datasets[0].data = [];
+
+            technologyChart.data.labels = [];
+            technologyChart.data.datasets[0].data = [];
+
+            // Calculate counts
+            const domainCounts = {};
+            const focusCounts = {};
+            const feasibilityCounts = {};
+            const technologyCounts = {};
+
+            Object.values(projects).forEach(details => {
+                // Domain
+                domainCounts[details.Domain] = (domainCounts[details.Domain] || 0) + 1;
+                // Focus
+                focusCounts[details.Focus] = (focusCounts[details.Focus] || 0) + 1;
+                // Feasibility
+                feasibilityCounts[details.Feasibility] = (feasibilityCounts[details.Feasibility] || 0) + 1;
+                // Technology
+                details.Technology.forEach(tech => {
+                    technologyCounts[tech] = (technologyCounts[tech] || 0) + 1;
+                });
+            });
+
+            // Update Domain Chart
+            domainChart.data.labels = Object.keys(domainCounts);
+            domainChart.data.datasets[0].data = Object.values(domainCounts);
+            domainChart.update();
+
+            // Update Focus Chart
+            focusChart.data.labels = Object.keys(focusCounts);
+            focusChart.data.datasets[0].data = Object.values(focusCounts);
+            focusChart.update();
+
+            // Update Feasibility Chart
+            feasibilityChart.data.labels = Object.keys(feasibilityCounts);
+            feasibilityChart.data.datasets[0].data = Object.values(feasibilityCounts);
+            feasibilityChart.update();
+
+            // Update Technology Chart
+            // Limit to top 10 technologies for clarity
+            const sortedTechnologies = Object.entries(technologyCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            technologyChart.data.labels = sortedTechnologies.map(item => item[0]);
+            technologyChart.data.datasets[0].data = sortedTechnologies.map(item => item[1]);
+            technologyChart.update();
+        }
+
+        // Initialize Charts
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeCharts();
+            initializeGallery();
+            setupFilterListeners();
+            setupRubricEventListeners();
+            analyzeBiases();
+        });
+
+        // Function to perform basic bias analysis (qualitative)
+        function analyzeBiases() {
+            // Example: Overrepresentation of AI in certain domains
+            const domainFocus = {};
+            Object.values(projectsData).forEach(details => {
+                if (!domainFocus[details.Domain]) {
+                    domainFocus[details.Domain] = {};
+                }
+                domainFocus[details.Domain][details.Focus] = (domainFocus[details.Domain][details.Focus] || 0) + 1;
+            });
+
+            console.log("Bias Analysis:", domainFocus);
+            // Further analysis can be implemented as needed
+        }
+    </script>
+</body>
+</html>
